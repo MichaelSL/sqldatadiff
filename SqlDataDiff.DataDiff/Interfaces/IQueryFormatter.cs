@@ -8,5 +8,6 @@ namespace SqlDataDiff.DataDiff.Interfaces
     public interface IQueryFormatter
     {
         string GetRowValuesString(DataRow dataRow);
+        string GetColumnsListString(IEnumerable<DataColumn> dataColumns);
     }
 }

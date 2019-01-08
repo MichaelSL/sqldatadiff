@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using SqlDataDiff.DataDiff.Extensions;
 using SqlDataDiff.DataDiff.Implementations;
 using SqlDataDiff.DataDiff.Interfaces;
 using System;
@@ -29,6 +30,7 @@ namespace SqlDataDiff.DataDiff.xUnitTests.Services
 
             IQueryFormatter queryFormatter = new QueryFormatter();
             queryFormatter.GetRowValuesString(dataTable.Rows[0]).Should().BeEquivalentTo($"{data}");
+            queryFormatter.GetRowValuesString(dataTable.Rows[0]).Should().NotContain("'");
         }
 
         [Fact]
@@ -41,6 +43,7 @@ namespace SqlDataDiff.DataDiff.xUnitTests.Services
 
             IQueryFormatter queryFormatter = new QueryFormatter();
             queryFormatter.GetRowValuesString(dataTable.Rows[0]).Should().BeEquivalentTo($"{data}");
+            queryFormatter.GetRowValuesString(dataTable.Rows[0]).Should().NotContain("'");
         }
 
         [Fact]
@@ -53,6 +56,7 @@ namespace SqlDataDiff.DataDiff.xUnitTests.Services
 
             IQueryFormatter queryFormatter = new QueryFormatter();
             queryFormatter.GetRowValuesString(dataTable.Rows[0]).Should().BeEquivalentTo($"{data}");
+            queryFormatter.GetRowValuesString(dataTable.Rows[0]).Should().NotContain("'");
         }
 
         [Fact]
@@ -121,6 +125,24 @@ namespace SqlDataDiff.DataDiff.xUnitTests.Services
             };
 
             return allData;
+        }
+        #endregion
+
+        #region GetColumnsListString
+        [Fact]
+        public void ColumnListString_ShouldReturnColumnsList()
+        {
+            var col1 = new DataColumn("Col1", typeof(string));
+            col1.AllowDBNull = true;
+            var col2 = new DataColumn("Col2", typeof(DateTime));
+            col1.AllowDBNull = true;
+            var col3 = new DataColumn("Col3", typeof(int));
+            col1.AllowDBNull = true;
+            var dataColumns = new DataColumn[] { col1, col2, col3 };
+            var dataTable = GetDataTable(dataColumns);
+
+            IQueryFormatter queryFormatter = new QueryFormatter();
+            queryFormatter.GetColumnsListString(dataTable.Columns.ToList()).Should().BeEquivalentTo("Col1, Col2, Col3");
         }
         #endregion
     }

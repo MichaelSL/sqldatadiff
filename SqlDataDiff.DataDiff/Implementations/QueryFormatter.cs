@@ -2,12 +2,18 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 
 namespace SqlDataDiff.DataDiff.Implementations
 {
     public class QueryFormatter : IQueryFormatter
     {
+        public string GetColumnsListString(IEnumerable<DataColumn> dataColumns)
+        {
+            return string.Join(", ", dataColumns.Select(column => column.ColumnName));
+        }
+
         public string GetRowValuesString(DataRow dataRow)
         {
             var rowCols = dataRow.Table.Columns;
