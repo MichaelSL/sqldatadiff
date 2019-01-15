@@ -12,12 +12,14 @@ namespace SqlDataDiff.DataDiff.xUnitTests.Services
 {
     public class QueryFormatterTests
     {
-        private DataTable GetDataTable(DataColumn[] dataColumns)
+        private readonly DataTestFixtureUtility dataUtility;
+
+        public QueryFormatterTests()
         {
-            var dt = new DataTable("TestTable");
-            dt.Columns.AddRange(dataColumns);
-            return dt;
+            dataUtility = new DataTestFixtureUtility();
         }
+
+        private DataTable GetDataTable(DataColumn[] dataColumns) => dataUtility.GetDataTableWithColumns(dataColumns);
 
         #region GetRowValuesString
         [Fact]
@@ -103,9 +105,9 @@ namespace SqlDataDiff.DataDiff.xUnitTests.Services
             var col1 = new DataColumn("Col1", typeof(string));
             col1.AllowDBNull = true;
             var col2 = new DataColumn("Col2", typeof(DateTime));
-            col1.AllowDBNull = true;
+            col2.AllowDBNull = true;
             var col3 = new DataColumn("Col3", typeof(int));
-            col1.AllowDBNull = true;
+            col3.AllowDBNull = true;
             var dataColumns = new DataColumn[] { col1, col2, col3 };
             var dataTable = GetDataTable(dataColumns);
             dataTable.Rows.Add(data);
@@ -135,9 +137,9 @@ namespace SqlDataDiff.DataDiff.xUnitTests.Services
             var col1 = new DataColumn("Col1", typeof(string));
             col1.AllowDBNull = true;
             var col2 = new DataColumn("Col2", typeof(DateTime));
-            col1.AllowDBNull = true;
+            col2.AllowDBNull = true;
             var col3 = new DataColumn("Col3", typeof(int));
-            col1.AllowDBNull = true;
+            col3.AllowDBNull = true;
             var dataColumns = new DataColumn[] { col1, col2, col3 };
             var dataTable = GetDataTable(dataColumns);
 
