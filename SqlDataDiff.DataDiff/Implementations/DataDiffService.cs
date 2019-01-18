@@ -41,15 +41,18 @@ namespace SqlDataDiff.DataDiff.Implementations
                 var destinationRow = FindRowByKey(dstTable, keyValue);
                 if (destinationRow == null)
                 {
-                    rowUpdateSql += GetInsertSql(srcTable, srcTable.Rows[i]);
+                    rowUpdateSql += GetInsertSql(srcTable, srcTable.Rows[i]) + Environment.NewLine;
                 }
                 else
                 {
-                    rowUpdateSql += GetUpdateSql(srcTable, srcTable.Rows[i], keyValue, generateIdempotentScript);
+                    if (generateIdempotentScript)
+                    {
+                        rowUpdateSql += GetUpdateSql(srcTable, srcTable.Rows[i], keyValue, generateIdempotentScript) + Environment.NewLine;
+                    }
                     processedDestinationRowKeys.Add(keyValue);
                 }
 
-                diffScript += rowUpdateSql + Environment.NewLine + Environment.NewLine;
+                diffScript += rowUpdateSql;
             }
 
             //second pass DELETE
