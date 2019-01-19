@@ -28,7 +28,7 @@ namespace SqlDataDiff.DataDiff.Implementations
             }
 
             List<object> processedDestinationRowKeys = new List<object>();
-            string diffScript = "";
+            StringBuilder diffScript = new StringBuilder();
 
             //first pass UPDATE + INSERT
             for (int i = 0; i < srcTable.Rows.Count; i++)
@@ -52,7 +52,7 @@ namespace SqlDataDiff.DataDiff.Implementations
                     processedDestinationRowKeys.Add(keyValue);
                 }
 
-                diffScript += rowUpdateSql;
+                diffScript.Append(rowUpdateSql);
             }
 
             //second pass DELETE
@@ -63,11 +63,11 @@ namespace SqlDataDiff.DataDiff.Implementations
 
                 if (!processedDestinationRowKeys.Contains(keyValue))
                 {
-                    diffScript += GetDeleteSql(dstTable, keyValue) + Environment.NewLine + Environment.NewLine;
+                    diffScript.Append(GetDeleteSql(dstTable, keyValue) + Environment.NewLine + Environment.NewLine);
                 }
             }
 
-            return (true, diffScript);
+            return (true, diffScript.ToString());
         }
 
         private string GetDeleteSql(DataTable table, object keyValue)
