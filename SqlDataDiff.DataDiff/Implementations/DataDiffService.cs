@@ -19,9 +19,9 @@ namespace SqlDataDiff.DataDiff.Implementations
             this.tableSchemaValidator = tableSchemaValidator ?? throw new ArgumentNullException(nameof(tableSchemaValidator));
         }
 
-        public (bool, string) GetDataDiffSql(DataTable srcTable, DataTable dstTable, bool generateIdempotentScript = true)
+        public (bool, string) GetDataDiffSql(DataTable srcTable, DataTable targetTable, bool generateIdempotentScript = true)
         {
-            var (validationResult, errors) = tableSchemaValidator.Validate(srcTable, dstTable);
+            var (validationResult, errors) = tableSchemaValidator.Validate(srcTable, targetTable);
             if (!validationResult)
             {
                 return (validationResult, string.Join("\n", errors));
@@ -31,23 +31,23 @@ namespace SqlDataDiff.DataDiff.Implementations
             StringBuilder diffScript = new StringBuilder();
 
             //first pass UPDATE + INSERT
-            for (int i = 0; i < srcTable.Rows.Count; i++)
+            for (int i = 0; i < targetTable.Rows.Count; i++)
             {
                 string rowUpdateSql = "";
 
-                var keyColumn = srcTable.PrimaryKey.Single();
-                var keyValue = srcTable.Rows[i][keyColumn];
+                var keyColumn = targetTable.PrimaryKey.Single();
+                var keyValue = targetTable.Rows[i][keyColumn];
 
-                var destinationRow = FindRowByKey(dstTable, keyValue);
+                var destinationRow = FindRowByKey(srcTable, keyValue);
                 if (destinationRow == null)
                 {
-                    rowUpdateSql += GetInsertSql(srcTable, srcTable.Rows[i]) + Environment.NewLine;
+                    rowUpdateSql += GetInsertSql(targetTable, targetTable.Rows[i]) + Environment.NewLine;
                 }
                 else
                 {
                     if (generateIdempotentScript)
                     {
-                        rowUpdateSql += GetUpdateSql(srcTable, srcTable.Rows[i], keyValue, generateIdempotentScript) + Environment.NewLine;
+                        rowUpdateSql += GetUpdateSql(targetTable, targetTable.Rows[i], keyValue, generateIdempotentScript) + Environment.NewLine;
                     }
                     processedDestinationRowKeys.Add(keyValue);
                 }
@@ -56,14 +56,14 @@ namespace SqlDataDiff.DataDiff.Implementations
             }
 
             //second pass DELETE
-            for (int i = 0; i < dstTable.Rows.Count; i++)
+            for (int i = 0; i < srcTable.Rows.Count; i++)
             {
-                var keyColumn = dstTable.PrimaryKey.Single();
-                var keyValue = dstTable.Rows[i][keyColumn];
+                var keyColumn = srcTable.PrimaryKey.Single();
+                var keyValue = srcTable.Rows[i][keyColumn];
 
                 if (!processedDestinationRowKeys.Contains(keyValue))
                 {
-                    diffScript.Append(GetDeleteSql(dstTable, keyValue) + Environment.NewLine + Environment.NewLine);
+                    diffScript.Append(GetDeleteSql(srcTable, keyValue) + Environment.NewLine + Environment.NewLine);
                 }
             }
 
