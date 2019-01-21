@@ -1,4 +1,5 @@
 ﻿using AutoFixture;
+using FluentAssertions;
 using SqlDataDiff.DataDiff.Implementations;
 using SqlDataDiff.DataDiff.Implementations.TableSchemaValidators;
 using System;
@@ -18,17 +19,29 @@ namespace SqlDataDiff.DataDiff.xUnitTests.Services
             dataUtility = new DataTestFixtureUtility();
         }
 
-        [Fact(Skip = "Acceptance")]
+        [Fact]
         public void TestOnRandomData()
         {
-            var dt1 = dataUtility.GetTableWithRandomTestData(new[] { typeof(string), typeof(DateTime), typeof(double) }, 15);
-            var dt2 = dataUtility.GetTableWithRandomTestData(new[] { typeof(string), typeof(DateTime), typeof(double) }, 10);
+            var rowsList1 = new List<List<object>>();
+            var row1 = new List<object> { 1, "string1", new DateTime(2019, 01, 19) };
+            rowsList1.Add(row1);
+
+            var rowsList2 = new List<List<object>>();
+            var row2 = new List<object> { 2, "string2", new DateTime(2019, 01, 19) };
+            rowsList2.Add(row1);
+            rowsList2.Add(row2);
+
+            var dt1 = dataUtility.GetTableWithTestData(typeof(int), new List<Type>() { typeof(string), typeof(DateTime) }, rowsList1);
+            var dt2 = dataUtility.GetTableWithTestData(typeof(int), new List<Type>() { typeof(string), typeof(DateTime) }, rowsList2);
 
             var service = new DataDiffService(new QueryFormatter(), new TableSchemaValidatorsComposite(new[] { new SamePrimaryKeysValidator() }));
 
-            var resSql = service.GetDataDiffSql(dt1, dt2);
+            var (sucess, resSql) = service.GetDataDiffSql(dt1, dt2, false);
 
-            Console.WriteLine(resSql.Item2);
+            var exp = "INSERT INTO TestTable(Id, ColString, ColDateTime) VALUES (2, 'string2', '2019-01-19 00:00:00');\r\n";
+
+            sucess.Should().BeTrue();
+            resSql.Should().Be(exp);
         }
     }
 }
