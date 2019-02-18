@@ -8,12 +8,12 @@ using System.Text;
 
 namespace SqlDataDiff.DataDiff.Implementations
 {
-    public class DataDiffService : IDataDiffService
+    public class TableDataDiffService : ITableDataDiffService
     {
         private readonly IQueryFormatter queryFormatter;
         private readonly ITableSchemaValidator tableSchemaValidator;
 
-        public DataDiffService(IQueryFormatter queryFormatter, ITableSchemaValidator tableSchemaValidator)
+        public TableDataDiffService(IQueryFormatter queryFormatter, ITableSchemaValidator tableSchemaValidator)
         {
             this.queryFormatter = queryFormatter ?? throw new ArgumentNullException(nameof(queryFormatter));
             this.tableSchemaValidator = tableSchemaValidator ?? throw new ArgumentNullException(nameof(tableSchemaValidator));

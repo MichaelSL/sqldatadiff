@@ -34,7 +34,7 @@ namespace SqlDataDiff.DataDiff.xUnitTests.Services
             var dt1 = dataUtility.GetTableWithTestData(typeof(int), new List<Type>() { typeof(string), typeof(DateTime) }, rowsList1);
             var dt2 = dataUtility.GetTableWithTestData(typeof(int), new List<Type>() { typeof(string), typeof(DateTime) }, rowsList2);
 
-            var service = new DataDiffService(new QueryFormatter(), new TableSchemaValidatorsComposite(new[] { new SamePrimaryKeysValidator() }));
+            var service = new TableDataDiffService(new QueryFormatter(), new TableSchemaValidatorsComposite(new[] { new SamePrimaryKeysValidator() }));
 
             var (sucess, resSql, error) = service.GetDataDiffSql(dt1, dt2, false);
 

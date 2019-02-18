@@ -50,7 +50,7 @@ namespace SqlDataDiff.Cmd
                     var targetTable = dataTableReader.GetDataTable(targetConnectionString.Value(), targetTableArgument.Value);
 
                     var validators = new List<ITableSchemaValidator> { new SamePrimaryKeysValidator(), new KeysDataTypeValidator(), new CompositeKeysValidator() };
-                    var service = new DataDiffService(new QueryFormatter(), new TableSchemaValidatorsComposite(validators));
+                    var service = new TableDataDiffService(new QueryFormatter(), new TableSchemaValidatorsComposite(validators));
 
                     var (success, diffScript, error) = service.GetDataDiffSql(srcTable, targetTable, idempotentScript.Value() != null);
 

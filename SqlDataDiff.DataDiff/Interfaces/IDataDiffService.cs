@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SqlDataDiff.DataDiff.Interfaces
 {
-    public interface IDataDiffService
+    public interface ITableDataDiffService
     {
         (bool, string, string) GetDataDiffSql(DataTable srcTable, DataTable targetTable, bool generateIdempotentScript = true);
         (bool, bool, string) TablesDataIdentical(DataTable srcTable, DataTable targetTable);
