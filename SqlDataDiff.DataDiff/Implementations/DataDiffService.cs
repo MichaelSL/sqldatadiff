@@ -19,12 +19,12 @@ namespace SqlDataDiff.DataDiff.Implementations
             this.tableSchemaValidator = tableSchemaValidator ?? throw new ArgumentNullException(nameof(tableSchemaValidator));
         }
 
-        public (bool, string) GetDataDiffSql(DataTable srcTable, DataTable targetTable, bool generateIdempotentScript = true)
+        public (bool, string, string) GetDataDiffSql(DataTable srcTable, DataTable targetTable, bool generateIdempotentScript = true)
         {
             var (validationResult, errors) = tableSchemaValidator.Validate(srcTable, targetTable);
             if (!validationResult)
             {
-                return (validationResult, string.Join("\n", errors));
+                return (validationResult, null, string.Join("\n", errors));
             }
 
             List<object> processedDestinationRowKeys = new List<object>();
@@ -45,9 +45,12 @@ namespace SqlDataDiff.DataDiff.Implementations
                 }
                 else
                 {
-                    if (generateIdempotentScript)
+                    if (!RowsEqual(targetTable.Rows[i], destinationRow))
                     {
-                        rowUpdateSql += GetUpdateSql(targetTable, targetTable.Rows[i], keyValue, generateIdempotentScript) + Environment.NewLine;
+                        if (generateIdempotentScript)
+                        {
+                            rowUpdateSql += GetUpdateSql(targetTable, targetTable.Rows[i], keyValue, generateIdempotentScript) + Environment.NewLine;
+                        }
                     }
                     processedDestinationRowKeys.Add(keyValue);
                 }
@@ -67,7 +70,54 @@ namespace SqlDataDiff.DataDiff.Implementations
                 }
             }
 
-            return (true, diffScript.ToString());
+            return (true, diffScript.ToString(), null);
+        }
+
+        public (bool, bool, string) TablesDataIdentical(DataTable srcTable, DataTable targetTable)
+        {
+            var (validationResult, errors) = tableSchemaValidator.Validate(srcTable, targetTable);
+            if (!validationResult)
+            {
+                return (validationResult, false, string.Join("\n", errors));
+            }
+
+            List<object> processedDestinationRowKeys = new List<object>();
+
+            //first pass by rows in target table
+            for (int i = 0; i < targetTable.Rows.Count; i++)
+            {
+                var keyColumn = targetTable.PrimaryKey.Single();
+                var keyValue = targetTable.Rows[i][keyColumn];
+
+                var destinationRow = FindRowByKey(srcTable, keyValue);
+                if (destinationRow == null)
+                {
+                    return (true, false, null);
+                }
+                else
+                {
+                    //check if data is the same here
+                    if (!RowsEqual(targetTable.Rows[i], destinationRow))
+                    {
+                        return (true, false, null);
+                    }
+                    processedDestinationRowKeys.Add(keyValue);
+                }
+            }
+
+            //second pass check if we have not processed rows in source table
+            for (int i = 0; i < srcTable.Rows.Count; i++)
+            {
+                var keyColumn = srcTable.PrimaryKey.Single();
+                var keyValue = srcTable.Rows[i][keyColumn];
+
+                if (!processedDestinationRowKeys.Contains(keyValue))
+                {
+                    return (true, false, null);
+                }
+            }
+
+            return (true, true, null);
         }
 
         private string GetDeleteSql(DataTable table, object keyValue)
@@ -91,7 +141,7 @@ namespace SqlDataDiff.DataDiff.Implementations
             return $"INSERT INTO {table.TableName}({queryFormatter.GetColumnsListString(table.Columns.ToList())}) VALUES ({queryFormatter.GetRowValuesString(row)});";
         }
 
-        private object FindRowByKey(DataTable table, object key)
+        private DataRow FindRowByKey(DataTable table, object key)
         {
             var keyColumn = table.PrimaryKey.Single();
             foreach (DataRow row in table.Rows)
@@ -101,6 +151,11 @@ namespace SqlDataDiff.DataDiff.Implementations
             }
 
             return null;
+        }
+
+        private bool RowsEqual(DataRow row1, DataRow row2)
+        {
+            return row1.ItemArray.SequenceEqual(row2.ItemArray);
         }
     }
 }

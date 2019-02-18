@@ -52,10 +52,11 @@ namespace SqlDataDiff.Cmd
                     var validators = new List<ITableSchemaValidator> { new SamePrimaryKeysValidator(), new KeysDataTypeValidator(), new CompositeKeysValidator() };
                     var service = new DataDiffService(new QueryFormatter(), new TableSchemaValidatorsComposite(validators));
 
-                    var (success, diffScript) = service.GetDataDiffSql(srcTable, targetTable, idempotentScript.Value() != null);
+                    var (success, diffScript, error) = service.GetDataDiffSql(srcTable, targetTable, idempotentScript.Value() != null);
 
                     if (!success)
                     {
+                        Console.WriteLine(error);
                         return 1;
                     }
 

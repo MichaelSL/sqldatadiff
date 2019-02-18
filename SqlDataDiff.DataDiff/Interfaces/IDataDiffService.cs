@@ -7,6 +7,7 @@ namespace SqlDataDiff.DataDiff.Interfaces
 {
     public interface IDataDiffService
     {
-        (bool, string) GetDataDiffSql(DataTable srcTable, DataTable dstTable, bool generateIdempotentScript = true);
+        (bool, string, string) GetDataDiffSql(DataTable srcTable, DataTable targetTable, bool generateIdempotentScript = true);
+        (bool, bool, string) TablesDataIdentical(DataTable srcTable, DataTable targetTable);
     }
 }

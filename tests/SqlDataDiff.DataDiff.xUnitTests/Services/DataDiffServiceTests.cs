@@ -36,12 +36,13 @@ namespace SqlDataDiff.DataDiff.xUnitTests.Services
 
             var service = new DataDiffService(new QueryFormatter(), new TableSchemaValidatorsComposite(new[] { new SamePrimaryKeysValidator() }));
 
-            var (sucess, resSql) = service.GetDataDiffSql(dt1, dt2, false);
+            var (sucess, resSql, error) = service.GetDataDiffSql(dt1, dt2, false);
 
             var exp = "INSERT INTO TestTable(Id, ColString, ColDateTime) VALUES (2, 'string2', '2019-01-19 00:00:00');\r\n";
 
             sucess.Should().BeTrue();
             resSql.Should().Be(exp);
+            error.Should().BeNullOrEmpty();
         }
     }
 }
