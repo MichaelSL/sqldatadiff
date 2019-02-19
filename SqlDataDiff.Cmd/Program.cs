@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.CommandLineUtils;
+using SqlDataDiff.DataDiff.Extensions;
 using SqlDataDiff.DataDiff.Implementations;
 using SqlDataDiff.DataDiff.Implementations.TableSchemaValidators;
 using SqlDataDiff.DataDiff.Interfaces;
@@ -20,7 +21,7 @@ namespace SqlDataDiff.Cmd
                 return 0;
             });
 
-            var create = app.Command("difftables", config =>
+            var diffTables = app.Command("difftables", config =>
             {
                 config.Description = "create data diff for tables";
 
@@ -68,6 +69,58 @@ namespace SqlDataDiff.Cmd
                     {
                         Console.Error.WriteLine(ioException.Message);
                         return 1;
+                    }
+
+                    return 0;
+                });
+                config.HelpOption("-? | -h | --help");
+            });
+
+            var checkDatabasesDataEquality = app.Command("dbdatacheck", config =>
+            {
+                config.Description = "check database tables data equality";
+
+                var sourceConnectionString = config.Option("--src|-s", "Source database connection string", CommandOptionType.SingleValue);
+                var targetConnectionString = config.Option("--target|-t", "Target database connection string", CommandOptionType.SingleValue);
+                var outputFile = config.Option("--output|-o", "Output file", CommandOptionType.SingleValue);
+
+                bool validateOptions(CommandOption srcConnectionString, CommandOption trgtConnectionString) => srcConnectionString.HasValue() && trgtConnectionString.HasValue();
+
+                config.OnExecute(async () =>
+                {
+                    if (!validateOptions(sourceConnectionString, targetConnectionString))
+                    {
+                        config.ShowHelp(); //show help
+                        return 0;
+                    }
+
+                    var validators = new List<ITableSchemaValidator> { new SamePrimaryKeysValidator(), new KeysDataTypeValidator(), new CompositeKeysValidator() };
+                    var tableDataDiffService = new TableDataDiffService(new QueryFormatter(), new TableSchemaValidatorsComposite(validators));
+                    var dbDataDiffService = new DbDataDiffService(tableDataDiffService);
+
+                    var (success, dataIsTheSame, error) = dbDataDiffService.IsDatabasesDataIdentical(sourceConnectionString.Value().GetConnection(DbProvider.MsSql), targetConnectionString.Value().GetConnection(DbProvider.MsSql));
+
+                    if (!success)
+                    {
+                        Console.WriteLine(error);
+                        return 1;
+                    }
+
+                    if (outputFile.HasValue())
+                    {
+                        try
+                        {
+                            await File.WriteAllTextAsync(outputFile.Value(), dataIsTheSame.ToString());
+                        }
+                        catch (IOException ioException)
+                        {
+                            Console.Error.WriteLine(ioException.Message);
+                            return 1;
+                        }
+                    }
+                    else
+                    {
+                        Console.Write(dataIsTheSame.ToString());
                     }
 
                     return 0;
