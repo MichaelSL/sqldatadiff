@@ -10,4 +10,27 @@ The script applied to source table updates data to be the same like in target ta
 
 ## Usage
 
-```dotnet SqlDataDiff.dll difftables <source table name> <target table name> -s "<source db connection string>" -t "<target db connection string>" -o diff.sql```
+```
+Usage:  difftables [arguments] [options]
+
+Arguments:
+  sourceTable  Source table name
+  targetTable  Target table name
+
+Options:
+  --src|-s          Source database connection string
+  --target|-t       Target database connection string
+  --output|-o       Output file
+  --idempotent|-i   Generate idempotent script
+  -? | -h | --help  Show help information
+```
+
+```
+Usage:  dbdatacheck [options]
+
+Options:
+  --src|-s          Source database connection string
+  --target|-t       Target database connection string
+  --output|-o       Output file
+  -? | -h | --help  Show help information
+  ```
